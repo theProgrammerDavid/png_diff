@@ -21,6 +21,11 @@ straightforward as possible.
 ### Fixed
  -
 
+## [v0.1.4] - 2024-07-11
+ 
+### Changed
+- cli arg structure to use an arg parser
+
 ## [v0.1.3] - 2024-07-11
  
 ### Changed

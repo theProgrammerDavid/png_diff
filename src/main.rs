@@ -1,26 +1,34 @@
-use field_count::FieldCount;
 use image::{GenericImageView, ImageBuffer, Rgba};
-use std::env;
 use std::path::Path;
-use std::process;
 use types::ProgramData;
-
 mod types;
 
-fn main() {
-    let args: Vec<String> = env::args().collect();
+use clap::Parser;
 
-    if args.len() != (ProgramData::field_count() + 1) {
-        eprintln!("Invalid number of arguments");
-        eprintln!("Correct usage is");
-        eprintln!("png_diff <path_to_original> <path_to_new> <path_to_output_heatmap>");
-        process::exit(1);
-    }
+#[derive(Parser, Debug)]
+#[command(version, about, long_about = None)]
+pub struct Args {
+    /// Path to the PNG image to use as a base
+    #[arg(short, long)]
+    original_image_path: String,
+
+    /// path to the new PNG image
+    #[arg(short, long)]
+    new_imagepath: String,
+    
+    /// path to write the output PNG heatmap
+    #[arg(short, long)]
+    path_to_heatmap: String,
+
+}
+
+fn main() {
+    let args = Args::parse();
 
     let init_data = ProgramData {
-        original_image_path: args[1].clone(),
-        new_imagepath: args[2].clone(),
-        heatmap_path: args[3].clone(),
+        original_image_path: args.original_image_path,
+        new_imagepath: args.new_imagepath,
+        heatmap_path: args.path_to_heatmap,
     };
 
     // Paths to the images
@@ -96,7 +104,7 @@ fn calculate_difference(px1: Rgba<u8>, px2: Rgba<u8>) -> u8 {
     let r_diff = (px1[0] as i16 - px2[0] as i16).abs() as u8;
     let g_diff = (px1[1] as i16 - px2[1] as i16).abs() as u8;
     let b_diff = (px1[2] as i16 - px2[2] as i16).abs() as u8;
-    
+
     let intensity = ((r_diff as u16 + g_diff as u16 + b_diff as u16) / 3) as u8;
 
     intensity
