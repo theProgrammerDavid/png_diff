@@ -2,6 +2,8 @@
 
 A simple rust binary to generate the difference between two pngs of the same size as a heatmap
 
+![heatmap example](./assets/example_heatmap.png)
+
 ## Usage
 
 ```bash
