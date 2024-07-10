@@ -21,18 +21,21 @@ straightforward as possible.
 ### Fixed
  -
 
-## [v0.1.1] - yyyy-mm-dd
+## [v0.1.3] - 2024-07-11
  
-Here we write upgrading notes for brands. It's a team effort to make them as
-straightforward as possible.
+### Changed
+- heatmap to have a white background
+
+## Added
+- Example heatmap image to README.md
+
+
+## [v0.1.1] - 2024-07-11
  
 ### Added
 - Changelog
 
-## [v0.1.0] - yyyy-mm-dd
- 
-Here we write upgrading notes for brands. It's a team effort to make them as
-straightforward as possible.
+## [v0.1.0] - 2024-07-11
  
 ### Added
 - Initial commit
