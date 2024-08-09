@@ -21,6 +21,9 @@ straightforward as possible.
 ### Fixed
  -
 
+## [v0.1.5] - 2024-08-10
+- added macos m1 arm support and binary file release
+
 ## [v0.1.4] - 2024-07-11
  
 ### Changed
