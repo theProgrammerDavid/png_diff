@@ -363,7 +363,7 @@ dependencies = [
 
 [[package]]
 name = "png_diff"
-version = "0.1.4"
+version = "0.1.6"
 dependencies = [
  "clap",
  "field_count",

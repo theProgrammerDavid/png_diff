@@ -22,7 +22,7 @@ pub struct Args {
 
     /// intensity of the heatmap, 255 is fully opaque and 0 is fully transparent
     #[arg(short,long)]
-    heatmap_intensity: u8
+    intensity: u8
 }
 
 fn main() {
@@ -32,7 +32,7 @@ fn main() {
         original_image_path: args.original_image_path,
         new_imagepath: args.new_imagepath,
         heatmap_path: args.path_to_heatmap,
-        heatmap_intensity: args.heatmap_intensity
+        heatmap_intensity: args.intensity
     };
 
     // Paths to the images

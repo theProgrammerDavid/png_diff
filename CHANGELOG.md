@@ -21,6 +21,10 @@ straightforward as possible.
 ### Fixed
  -
 
+## [v0.1.6] - 2024-08-12
+- Added heatmap opacity CLI option
+- Refactored result to now return a JSON via stdout
+
 ## [v0.1.5] - 2024-08-10
 - added macos m1 arm support and binary file release
 
