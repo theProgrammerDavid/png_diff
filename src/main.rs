@@ -15,11 +15,14 @@ pub struct Args {
     /// path to the new PNG image
     #[arg(short, long)]
     new_imagepath: String,
-    
+
     /// path to write the output PNG heatmap
     #[arg(short, long)]
     path_to_heatmap: String,
 
+    /// intensity of the heatmap, 255 is fully opaque and 0 is fully transparent
+    #[arg(short,long)]
+    heatmap_intensity: u8
 }
 
 fn main() {
@@ -29,6 +32,7 @@ fn main() {
         original_image_path: args.original_image_path,
         new_imagepath: args.new_imagepath,
         heatmap_path: args.path_to_heatmap,
+        heatmap_intensity: args.heatmap_intensity
     };
 
     // Paths to the images
@@ -52,6 +56,7 @@ fn main() {
     // Create an image to store the differences (heatmap)
     let mut heatmap_img = ImageBuffer::from_fn(width, height, |_x, _y| Rgba([255, 255, 255, 255]));
     let mut difference_found = false;
+    let mut pixels_changed: u64 = 0;
 
     for x in 0..width {
         for y in 0..height {
@@ -60,11 +65,17 @@ fn main() {
 
             let diff = calculate_difference(px1, px2);
 
-            if !difference_found {
-                difference_found = diff > 0;
+            if diff > 0 {
+                pixels_changed += 1;
+
+                if !difference_found {
+                    difference_found = diff > 0;
+                }
+                let heatmap_color = blend_with_white(Rgba([255, 0, 0, 255]), diff);
+                heatmap_img.put_pixel(x, y, heatmap_color);
+            } else {
+                heatmap_img.put_pixel(x, y, Rgba([px1[0], px1[1], px1[2], init_data.heatmap_intensity]));
             }
-            let heatmap_color = blend_with_white(Rgba([255, 0, 0, 255]), diff);
-            heatmap_img.put_pixel(x, y, heatmap_color);
         }
     }
 
@@ -97,7 +108,10 @@ fn main() {
         .save(init_data.heatmap_path)
         .expect("Failed to save diff.png");
 
-    println!("non zero diff found: {}", difference_found);
+        println!(
+            r#"{{"non_zero_diff_found": {}, "pixels_changed": {}}}"#,
+            difference_found, pixels_changed
+        );
 }
 
 fn calculate_difference(px1: Rgba<u8>, px2: Rgba<u8>) -> u8 {
