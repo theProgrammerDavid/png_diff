@@ -1,5 +1,6 @@
 use image::{GenericImageView, ImageBuffer, Rgba};
-use std::path::Path;
+use std::path::{Path, PathBuf};
+use std::fs;
 use types::ProgramData;
 mod types;
 
@@ -16,23 +17,51 @@ pub struct Args {
     #[arg(short, long)]
     new_imagepath: String,
 
-    /// path to write the output PNG heatmap
-    #[arg(short, long)]
-    path_to_heatmap: String,
+    /// path to write the output PNG heatmap (optional, uses temp directory if not specified)
+    #[arg(short = 'p', long)]
+    path_to_heatmap: Option<String>,
 
-    /// intensity of the heatmap, 255 is fully opaque and 0 is fully transparent
-    #[arg(short,long)]
-    intensity: u8
+    /// intensity of the heatmap, 255 is fully opaque and 0 is fully transparent (default: 128)
+    #[arg(short, long, default_value_t = 128)]
+    intensity: u8,
+
+    /// Output format for statistics: "file" or "stdout" (default: stdout)
+    #[arg(short, long, default_value = "stdout")]
+    stats_output: String,
+}
+
+fn get_temp_heatmap_path() -> PathBuf {
+    let temp_dir = if cfg!(windows) {
+        std::env::var("LOCALAPPDATA")
+            .or_else(|_| std::env::var("TEMP"))
+            .unwrap_or_else(|_| "C:\\temp".to_string())
+    } else {
+        std::env::var("TMPDIR")
+            .unwrap_or_else(|_| "/tmp".to_string())
+    };
+    
+    let mut path = PathBuf::from(temp_dir);
+    path.push("heatmap_diff.png");
+    path
 }
 
 fn main() {
     let args = Args::parse();
 
+    if args.stats_output != "file" && args.stats_output != "stdout" {
+        eprintln!("Error: --stats must be either 'file' or 'stdout'");
+        std::process::exit(1);
+    }
+
+    let heatmap_path = args.path_to_heatmap
+        .unwrap_or_else(|| get_temp_heatmap_path().to_string_lossy().to_string());
+
     let init_data = ProgramData {
         original_image_path: args.original_image_path,
         new_imagepath: args.new_imagepath,
-        heatmap_path: args.path_to_heatmap,
-        heatmap_intensity: args.intensity
+        heatmap_path: heatmap_path.clone(),
+        heatmap_intensity: args.intensity,
+        stats_output: args.stats_output,
     };
 
     // Paths to the images
@@ -105,13 +134,26 @@ fn main() {
 
     // Save the final image
     final_img
-        .save(init_data.heatmap_path)
-        .expect("Failed to save diff.png");
+        .save(&init_data.heatmap_path)
+        .expect("Failed to save heatmap image");
 
-        println!(
-            r#"{{"non_zero_diff_found": {}, "pixels_changed": {}}}"#,
-            difference_found, pixels_changed
-        );
+    let stats_json = format!(
+        r#"{{"pixels_changed": {}, "non_zero_diff_found": {}, "heatmap_saved_to": "{}"}}"#,
+        pixels_changed, difference_found, init_data.heatmap_path
+    );
+
+    match init_data.stats_output.as_str() {
+        "stdout" => {
+            println!("{}", stats_json);
+        }
+        "file" => {
+            let stats_file_path = "stats.json";
+            fs::write(&stats_file_path, stats_json)
+                .expect(&format!("Failed to write stats to {}", stats_file_path));
+            println!("Statistics written to: {}", stats_file_path);
+        }
+        _ => unreachable!(),
+    }
 }
 
 fn calculate_difference(px1: Rgba<u8>, px2: Rgba<u8>) -> u8 {
